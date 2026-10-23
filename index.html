@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Let’s find out what’s wrong with you</title>
+<meta name="theme-color" content="#fffaf6">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Kodchasan:wght@400;500;600;700&display=swap">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div class="bg" id="bg" aria-hidden="true"></div>
+<header>
+  <h1>Expose Me</h1>
+  <button id="snd" aria-pressed="false" aria-label="Sound effects">Sound off</button>
+  <div class="prog" role="progressbar" aria-label="Quiz progress" aria-valuemin="0" aria-valuemax="3" aria-valuenow="0"><i id="fill"></i></div>
+</header>
+<main>
+  <section id="s-story" class="on" aria-live="polite">
+    <div class="bubble" id="stext"></div>
+    <div class="st" id="sart" aria-hidden="true"></div>
+    <div class="row" id="sbtns"></div>
+  </section>
+
+  <section id="s-quiz" aria-live="polite">
+    <div id="qbox">
+      <div class="bubble"><span class="lab" id="count">01 / 03</span><h2 class="q" id="qtext" tabindex="-1"></h2></div>
+      <div class="st" id="qst" aria-hidden="true"></div>
+      <div class="opts" id="opts"></div>
+    </div>
+  </section>
+
+  <section id="s-wait" aria-live="assertive">
+    <div class="bubble">Reading your chaos<span class="dots"></span></div>
+    <div class="st" id="wart" aria-hidden="true"></div>
+  </section>
+
+  <section id="s-result" aria-labelledby="rname">
+    <article id="card">
+      <div class="fx" id="fx" aria-hidden="true"></div>
+      <div class="tag">YOU ARE</div>
+      <div class="st emo" id="remoji" aria-hidden="true"></div>
+      <h2 class="rname" id="rname" tabindex="-1"></h2>
+      <p class="desc" id="rdesc"></p>
+      <div class="sig">Made by Storymint Studio</div>
+    </article>
+    <div class="row">
+      <button class="pill main" id="share">SHARE MY RESULT</button>
+      <button class="pill" id="again">TEST AGAIN</button>
+    </div>
+  </section>
+</main>
+<div id="toast" role="status" aria-live="polite"></div>
+
+<script>
+(function(){
+  var S='stroke="var(--o)" stroke-width="7" stroke-linejoin="round"';
+  var ART={
+    phone:'<svg viewBox="0 0 120 112"><rect x="36" y="8" width="48" height="94" rx="10" fill="#fff" '+S+'/><rect x="43" y="20" width="34" height="62" rx="5" fill="#ffb3d6"/><circle cx="60" cy="92" r="3.5" fill="#e0207a"/><path d="M60 36l3 7 7 .6-5.4 4.6 1.7 7-6.3-4-6.3 4 1.7-7-5.4-4.6 7-.6z" fill="#ffd93d"/></svg>',
+    jelly:'<svg viewBox="0 0 140 108"><path d="M14 78c-4-6 2-12 4-20 3-14 14-30 36-32 24-2 44 8 54 26 4 8 14 10 14 22 0 8-6 10-14 10H28c-8 0-12-2-14-6z" fill="#ff6fae" '+S+'/><ellipse cx="38" cy="95" rx="5" ry="8" fill="#ff6fae"/><ellipse cx="104" cy="94" rx="5" ry="7" fill="#ff6fae"/><path d="M40 52c6-10 18-14 30-12" fill="none" stroke="#fff" stroke-width="6" stroke-linecap="round" opacity=".8"/><ellipse cx="98" cy="58" rx="6" ry="4" fill="#fff" opacity=".7"/></svg>',
+    moon:'<svg viewBox="0 0 120 112"><path d="M78 12A44 44 0 1 0 100 80 36 36 0 0 1 78 12z" fill="#ffe14d" '+S+'/><path d="M96 24l3 6 6 .6-4.6 4 1.4 6-5.8-3.4-5.8 3.4 1.4-6-4.6-4 6-.6z" fill="#4fd8ff"/><circle cx="32" cy="22" r="4" fill="#ff6fae"/></svg>',
+    cup:'<svg viewBox="0 0 130 112"><path d="M22 40h70v26c0 18-14 30-35 30S22 84 22 66z" fill="#fff" '+S+'/><path d="M92 48h10c10 0 10 20 0 20H90" fill="none" stroke="var(--o)" stroke-width="7" stroke-linecap="round"/><path d="M40 54h34" stroke="#ff6fae" stroke-width="6" stroke-linecap="round"/><path d="M44 28c-6-6 6-10 0-18M64 28c-6-6 6-10 0-18" fill="none" stroke="#e0207a" stroke-width="4" stroke-linecap="round"/></svg>'
+  };
+  // story beats: buttons are [label, next, primary]; next = index or "quiz"
+  var STORY=[
+    {t:"One night…\nyou were doomscrolling when your phone lit up with a message:\n\n“Let’s find out what’s wrong with you.”\n\n3 questions. Zero judgment.\nOkay, maybe a little.",a:"phone",o:"#ff9ccd",b:[["EXPOSE ME →",2,1],["Not ready",1,0]]},
+    {t:"Nobody is ever ready.\nThat’s kind of the whole problem.",a:"cup",o:"#9be86a",b:[["Fine. Expose me.",2,1]]},
+    {t:"And suddenly,\nyour whole personality melted into jelly.",a:"jelly",o:"#b6f06a",b:[["!!!!!","quiz",1]]}
+  ];
+  var QUESTIONS=[
+    {a:"phone",o:"#ff9ccd",q:"Your crush replies “hmm.” What do you do?",c:[["Analyse the punctuation for 2 hours.","O"],["Imagine our wedding.","D"],["Reply “okay” and disappear.","U"],["Send a meme and change the topic.","C"]]},
+    {a:"moon",o:"#7cc8ff",q:"It’s 2 AM. Your brain decides to:",c:[["Replay an embarrassing moment from 2019.","O"],["Plan my billionaire era.","D"],["Sleep. I have boundaries.","U"],["Start 17 random projects.","C"]]},
+    {a:"cup",o:"#9be86a",q:"Your friend says, “I have tea.” You:",c:[["Ask 50 questions before the story begins.","O"],["Prepare a whole imaginary scenario.","D"],["Say “tell me tomorrow.”","U"],["Grab snacks. This is cinema.","C"]]}
+  ];
+  var TYPES={
+    O:{name:"The Professional Overthinker",emoji:"🧠",desc:"You don’t overthink. You conduct a full investigation over one text message."},
+    D:{name:"The Delulu CEO",emoji:"👑",desc:"The vision is unrealistic. The confidence is extraordinary."},
+    U:{name:"The Unbothered Legend",emoji:"🧊",desc:"The world is ending. You’re wondering what’s for dinner."},
+    C:{name:"The Certified Chaos",emoji:"🤡",desc:"You came for one thing and somehow created seven side quests."}
+  };
+  var $=function(id){return document.getElementById(id)};
+  var reduce=window.matchMedia&&matchMedia("(prefers-reduced-motion: reduce)").matches;
+  var step=0,picks=[],locked=false,current=null,sound=false,actx=null,LET="ABCD";
+
+  function art(el,name,o){el.innerHTML=ART[name];el.style.setProperty("--o",o)}
+
+  // sprinkles + stars background
+  (function(){
+    var bg=$("bg"),cols=[["#3aa7ff","#1456c8"],["#ff6fae","#e0207a"],["#ff9a3c","#f0432b"],["#ff4d4d","#c91f37"],["#ffe14d","#f2b705"],["#5be06a","#1fa83a"]];
+    for(var i=0;i<38;i++){
+      var c=cols[i%cols.length],s=document.createElement("span");
+      s.className="sp";
+      s.style.cssText="width:"+(12+Math.random()*8)+"px;height:"+(36+Math.random()*50)+"px;left:"+(Math.random()*100)+"%;top:"+(Math.random()*100)+"%;--b:"+c[0]+";--d:"+c[1]+";--r:"+(Math.random()*180)+"deg;animation-delay:"+(-Math.random()*7)+"s";
+      bg.appendChild(s);
+    }
+    var sc=["#ffd93d","#4fd8ff","#ff9ccd","#8ee03a","#ff6a55"];
+    for(var j=0;j<9;j++){
+      var t=document.createElement("span"),z=20+Math.random()*12;
+      t.className="star";
+      t.style.cssText="width:"+z+"px;height:"+z+"px;left:"+(Math.random()*96)+"%;top:"+(Math.random()*96)+"%;background:"+sc[j%sc.length]+";animation-delay:"+(-Math.random()*6)+"s";
+      bg.appendChild(t);
+    }
+  })();
+
+  function show(id){["s-story","s-quiz","s-wait","s-result"].forEach(function(s){$(s).classList.toggle("on",s===id)})}
+  function beep(f,d,ty,v){
+    if(!sound)return;
+    try{
+      actx=actx||new (window.AudioContext||window.webkitAudioContext)();
+      var o=actx.createOscillator(),g=actx.createGain();
+      o.type=ty||"sine";o.frequency.value=f;g.gain.value=v||.06;
+      g.gain.exponentialRampToValueAtTime(.0001,actx.currentTime+d);
+      o.connect(g);g.connect(actx.destination);o.start();o.stop(actx.currentTime+d);
+    }catch(e){}
+  }
+  function pad(n){return (n<10?"0":"")+n}
+  function setProgress(done){
+    $("fill").style.width=(done/QUESTIONS.length*100)+"%";
+    document.querySelector(".prog").setAttribute("aria-valuenow",done);
+  }
+
+  function showStory(i){
+    var B=STORY[i];
+    $("stext").textContent=B.t;art($("sart"),B.a,B.o);
+    var row=$("sbtns");row.innerHTML="";
+    B.b.forEach(function(x){
+      var b=document.createElement("button");
+      b.type="button";b.className="pill"+(x[2]?" main":"");b.textContent=x[0];
+      b.addEventListener("click",function(){
+        beep(500,.1,"triangle");
+        if(x[1]==="quiz"){show("s-quiz");setProgress(0);renderQ()}else showStory(x[1]);
+      });
+      row.appendChild(b);
+    });
+    show("s-story");
+  }
+
+  function renderQ(){
+    var Q=QUESTIONS[step];
+    $("count").textContent=pad(step+1)+" / "+pad(QUESTIONS.length);
+    $("qtext").textContent=Q.q;art($("qst"),Q.a,Q.o);
+    var box=$("opts");box.innerHTML="";
+    Q.c.forEach(function(ans,i){
+      var b=document.createElement("button");
+      b.className="pill opt";b.type="button";
+      b.innerHTML="<b>"+LET[i]+"</b><span></span>";
+      b.lastChild.textContent=ans[0];
+      b.addEventListener("click",function(){choose(i,b)});
+      box.appendChild(b);
+    });
+    var qb=$("qbox");qb.classList.remove("in");void qb.offsetWidth;qb.classList.add("in");
+    locked=false;$("qtext").focus({preventScroll:true});
+  }
+  function choose(i,btn){
+    if(locked)return;locked=true;
+    btn.classList.add("pick");beep(520+i*90,.12,"triangle");
+    picks.push(QUESTIONS[step].c[i][1]);
+    setProgress(step+1);
+    setTimeout(function(){step++;if(step<QUESTIONS.length)renderQ();else reveal()},reduce?80:420);
+  }
+  // Highest score wins. Tie-breaker: among tied types, the one picked most recently wins.
+  function score(){
+    var t={O:0,D:0,U:0,C:0};picks.forEach(function(p){t[p]++});
+    var max=Math.max(t.O,t.D,t.U,t.C);
+    for(var i=picks.length-1;i>=0;i--){if(t[picks[i]]===max)return picks[i]}
+    return "C";
+  }
+  function reveal(){
+    current=score();show("s-wait");
+    var cl=["#ff9ccd","#ffe14d","#9be86a","#7cc8ff"],k=0;art($("wart"),"jelly",cl[0]);
+    var iv=setInterval(function(){k++;$("wart").style.setProperty("--o",cl[k%cl.length]);beep(300+k*60,.1,"square",.03)},350);
+    setTimeout(function(){clearInterval(iv);showResult()},reduce?400:1800);
+  }
+  function showResult(){
+    var T=TYPES[current],card=$("card");
+    card.setAttribute("data-t",current);
+    $("remoji").textContent=T.emoji;$("rname").textContent=T.name;$("rdesc").textContent=T.desc;
+    var fx=$("fx");fx.innerHTML="";
+    for(var i=0;i<14;i++){
+      var s=document.createElement("span");
+      s.style.cssText="left:"+(Math.random()*95)+"%;width:"+(7+Math.random()*5)+"px;height:"+(22+Math.random()*26)+"px;--r:"+(Math.random()*160)+"deg;animation-duration:"+(6+Math.random()*6)+"s;animation-delay:"+(-Math.random()*9)+"s";
+      fx.appendChild(s);
+    }
+    show("s-result");
+    card.classList.remove("pop");void card.offsetWidth;card.classList.add("pop");
+    beep(660,.15,"triangle",.07);setTimeout(function(){beep(880,.25,"triangle",.07)},130);
+    $("rname").focus({preventScroll:true});
+  }
+  function reset(){step=0;picks=[];current=null;setProgress(0);showStory(0);$("sbtns").firstChild.focus()}
+  function toast(m){var t=$("toast");t.textContent=m;t.classList.add("show");clearTimeout(toast.h);toast.h=setTimeout(function(){t.classList.remove("show")},2400)}
+  function copy(text){
+    if(navigator.clipboard&&navigator.clipboard.writeText)return navigator.clipboard.writeText(text);
+    return new Promise(function(res,rej){
+      try{var ta=document.createElement("textarea");ta.value=text;ta.style.cssText="position:fixed;opacity:0";document.body.appendChild(ta);ta.select();var ok=document.execCommand("copy");document.body.removeChild(ta);ok?res():rej()}catch(e){rej(e)}
+    });
+  }
+  function shareResult(){
+    var T=TYPES[current],url=location.href.split("#")[0];
+    var text="I got "+T.name+" — “"+T.desc+"” Find out what’s wrong with you:";
+    var fb=function(){copy(text+" "+url).then(function(){toast("Result copied. Go cause chaos.")},function(){toast("Couldn’t copy. Screenshot the card instead!")})};
+    if(navigator.share){navigator.share({title:"Let’s find out what’s wrong with you",text:text,url:url}).catch(function(e){if(!e||e.name!=="AbortError")fb()})}
+    else fb();
+  }
+  $("again").addEventListener("click",reset);
+  $("share").addEventListener("click",shareResult);
+  $("snd").addEventListener("click",function(){
+    sound=!sound;this.setAttribute("aria-pressed",sound);
+    this.textContent=sound?"Sound on":"Sound off";beep(600,.1,"triangle");
+  });
+  document.addEventListener("keydown",function(e){
+    if(!$("s-quiz").classList.contains("on")||locked)return;
+    var n=parseInt(e.key,10);
+    if(n>=1&&n<=4){var b=$("opts").children[n-1];if(b){e.preventDefault();b.click()}}
+  });
+  showStory(0);
+})();
+</script>
+</body>
+</html>
